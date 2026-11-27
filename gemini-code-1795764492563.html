@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RadioBioCalc - Hệ thống Tính toán Sinh học Bức xạ</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Be Vietnam Pro & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Be Vietnam Pro"', 'Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        navyDark: '#071e3d',
+                        navyMid: '#0b2d5b',
+                        brandBlue: '#0062cc',
+                        brandLight: '#e8f1fb',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Be Vietnam Pro', 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+            overflow-x: hidden;
+        }
+
+        /* Hiệu ứng nút viên thuốc trung tâm ở Trang chủ */
+        .hero-pill-logo {
+            background: linear-gradient(135deg, #0072e5 0%, #0050b3 55%, #003a8c 100%);
+            box-shadow: 0 20px 38px -10px rgba(0, 86, 179, 0.45), inset 0 2px 4px rgba(255, 255, 255, 0.35);
+        }
+
+        .cta-pill-btn {
+            background: linear-gradient(90deg, #006be6 0%, #004ea8 100%);
+            box-shadow: 0 12px 25px -6px rgba(0, 86, 179, 0.45);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .cta-pill-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 16px 32px -6px rgba(0, 86, 179, 0.6);
+            filter: brightness(1.06);
+        }
+
+        .cta-pill-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Nền trang chủ chuyển sắc nhẹ bên trái */
+        .hero-left-bg {
+            background: radial-gradient(circle at 25% 40%, #ffffff 0%, #f0f6fc 60%, #e1edf9 100%);
+        }
+
+        /* Khối cắt chéo bên phải trên màn hình lớn */
+        @media (min-width: 1024px) {
+            .diagonal-ribbon-back {
+                clip-path: polygon(22% 0%, 100% 0%, 100% 100%, 0% 100%);
+                background: linear-gradient(165deg, rgba(165, 206, 250, 0.65) 0%, rgba(110, 173, 245, 0.45) 50%, rgba(59, 130, 246, 0.35) 100%);
+            }
+            .diagonal-ribbon-mid {
+                clip-path: polygon(26% 0%, 100% 0%, 100% 100%, 4% 100%);
+                background: linear-gradient(165deg, #3b82f6 0%, #1d4ed8 50%, #1e3a8a 100%);
+            }
+            .diagonal-navy-panel {
+                clip-path: polygon(28.5% 0%, 100% 0%, 100% 100%, 6.5% 100%);
+                background: radial-gradient(circle at 80% 20%, #0d3266 0%, #071e3d 55%, #041226 100%);
+            }
+        }
+
+        @media (max-width: 1023px) {
+            .diagonal-navy-panel {
+                background: linear-gradient(160deg, #0b2d5b 0%, #071e3d 100%);
+            }
+        }
+
+        /* Lấp lánh ngôi sao trên quỹ đạo */
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 0.7; transform: scale(0.95); }
+            50% { opacity: 1; transform: scale(1.15); }
+        }
+        .star-sparkle {
+            animation: pulseGlow 3s infinite ease-in-out;
+            transform-origin: center;
+        }
+        .star-sparkle-delay {
+            animation: pulseGlow 3.5s infinite ease-in-out 1.4s;
+            transform-origin: center;
+        }
+
+        /* Ẩn thanh cuộn ngang nhưng vẫn cho phép cuộn trên mobile */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* Hiệu ứng chuyển tab */
+        .tab-panel {
+            animation: fadeIn 0.25s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- ================= HEADER / TOP NAVIGATION BAR ================= -->
+    <header class="bg-white border-b border-slate-200/80 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 h-auto lg:h-[74px] py-2.5 lg:py-0 flex flex-col lg:flex-row items-center justify-between gap-3">
+            
+            <!-- Góc trái: Logo Icon + Tiêu đề -->
+            <div onclick="switchTab('home')" class="flex items-center gap-3 cursor-pointer group self-start lg:self-auto">
+                <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-[#1677ff] to-[#004bb5] flex items-center justify-center shadow-md shadow-blue-500/25 group-hover:scale-105 transition-transform">
+                    <!-- Icon Nguyên tử màu trắng nét mảnh -->
+                    <svg class="w-7 h-7 text-white" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.4">
+                        <circle cx="32" cy="32" r="4.5" fill="currentColor" stroke="none"/>
+                        <ellipse cx="32" cy="32" rx="24" ry="9.5" transform="rotate(0 32 32)"/>
+                        <ellipse cx="32" cy="32" rx="24" ry="9.5" transform="rotate(60 32 32)"/>
+                        <ellipse cx="32" cy="32" rx="24" ry="9.5" transform="rotate(120 32 32)"/>
+                        <circle cx="52" cy="26" r="2" fill="currentColor" stroke="none"/>
+                        <circle cx="18" cy="48" r="2" fill="currentColor" stroke="none"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="text-[19px] font-bold tracking-tight text-slate-900 leading-tight">RadioBioCalc</div>
+                    <div class="text-[12px] font-medium text-slate-500 leading-tight mt-0.5">Sinh học Bức xạ • Nhóm 4</div>
+                </div>
+            </div>
+
+            <!-- Thanh điều hướng dạng các cụm pill nền xám nhạt giống hệt thiết kế -->
+            <nav class="w-full lg:w-auto overflow-x-auto no-scrollbar pb-1 lg:pb-0">
+                <div class="flex items-center gap-2.5 min-w-max">
+                    <!-- Nhóm 1: Trang chủ & Giới thiệu -->
+                    <div class="bg-[#eef3f9] p-1 rounded-full flex items-center gap-1 border border-slate-200/60">
+                        <button id="nav-home" onclick="switchTab('home')" class="nav-btn px-4 py-1.5 rounded-full text-[13.5px] font-semibold transition-all bg-white text-[#0056b3] shadow-sm">
+                            Trang chủ
+                        </button>
+                        <button id="nav-intro" onclick="switchTab('intro')" class="nav-btn px-4 py-1.5 rounded-full text-[13.5px] font-medium text-slate-600 hover:text-slate-900 transition-all">
+                            Giới thiệu
+                        </button>
+                    </div>
+
+                    <!-- Nhóm 2: 1. BED Cơ bản & 2. BED Tái sinh -->
+                    <div class="bg-[#eef3f9] p-1 rounded-full flex items-center gap-1 border border-slate-200/60">
+                        <button id="nav-bed-basic" onclick="switchTab('bed-basic')" class="nav-btn px-4 py-1.5 rounded-full text-[13.5px] font-medium text-slate-600 hover:text-slate-900 transition-all">
+                            1. BED Cơ bản
+                        </button>
+                        <button id="nav-bed-repop" onclick="switchTab('bed-repop')" class="nav-btn px-4 py-1.5 rounded-full text-[13.5px] font-medium text-slate-600 hover:text-slate-900 transition-all">
+                            2. BED Tái sinh
+                        </button>
+                    </div>
+
+                    <!-- Nhóm 3: 3. Chuyển đổi Phác đồ -->
+                    <div class="bg-[#eef3f9] p-1 rounded-full flex items-center border border-slate-200/60">
+                        <button id="nav-regimen" onclick="switchTab('regimen')" class="nav-btn px-4 py-1.5 rounded-full text-[13.5px] font-medium text-slate-600 hover:text-slate-900 transition-all">
+                            3. Chuyển đổi Phác đồ
+                        </button>
+                    </div>
+
+                    <!-- Nhóm 4: 4. Sửa sai Phân liều -->
+                    <div class="bg-[#eef3f9] p-1 rounded-full flex items-center border border-slate-200/60">
+                        <button id="nav-gap" onclick="switchTab('gap')" class="nav-btn px-4 py-1.5 rounded-full text-[13.5px] font-medium text-slate-600 hover:text-slate-900 transition-all">
+                            4. Sửa sai Phân liều
+                        </button>
+                    </div>
+                </div>
+            </nav>
+
+        </div>
+    </header>
+
+    <!-- ================= MAIN CONTENT CONTAINER ================= -->
+    <main class="flex-1 flex flex-col">
+
+        <!-- ==================== TAB 0: TRANG CHỦ (HERO DESIGN) ==================== -->
+        <section id="tab-home" class="tab-panel flex-1 relative hero-left-bg flex flex-col lg:flex-row overflow-hidden min-h-[calc(100vh-74px)]">
+            
+            <!-- PHẦN BÊN TRÁI (Chiếm ~62% trên desktop) -->
+            <div class="w-full lg:w-[62%] flex flex-col justify-between px-6 sm:px-12 lg:px-16 pt-12 pb-7 z-10">
+                
+                <!-- Khoảng trống cân đối phía trên -->
+                <div class="hidden lg:block h-4"></div>
+
+                <!-- Trung tâm: Logo Pill + Vòng quỹ đạo + Mô tả + Nút Bắt đầu -->
+                <div class="flex flex-col items-center text-center my-auto py-8">
+                    
+                    <!-- Wrapper Logo viên thuốc + Quỹ đạo Elip -->
+                    <div class="relative inline-flex items-center justify-center mb-7 select-none">
+                        <!-- SVG Quỹ đạo Elip bao quanh viên thuốc -->
+                        <svg class="absolute w-[340px] sm:w-[440px] md:w-[490px] h-[165px] sm:h-[205px] pointer-events-none overflow-visible" viewBox="0 0 500 210" fill="none">
+                            <defs>
+                                <linearGradient id="orbitGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+                                    <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.75"/>
+                                    <stop offset="50%" stop-color="#60a5fa" stop-opacity="0.4"/>
+                                    <stop offset="100%" stop-color="#0284c7" stop-opacity="0.85"/>
+                                </linearGradient>
+                                <filter id="glowBlur" x="-20%" y="-20%" width="140%" height="140%">
+                                    <feGaussianBlur stdDeviation="3" result="blur"/>
+                                    <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+                                </filter>
+                            </defs>
+                            <!-- Đường elip nghiêng -21 độ -->
+                            <ellipse cx="250" cy="105" rx="236" ry="54" transform="rotate(-21 250 105)" stroke="url(#orbitGrad)" stroke-width="2.2"/>
+                            
+                            <!-- Điểm sáng & ngôi sao 4 cánh trên quỹ đạo -->
+                            <g class="star-sparkle" filter="url(#glowBlur)">
+                                <circle cx="428" cy="64" r="4" fill="#bae6fd"/>
+                                <path d="M428 53 L430 62 L439 64 L430 66 L428 75 L426 66 L417 64 L426 62 Z" fill="#ffffff"/>
+                            </g>
+                            <g class="star-sparkle-delay" filter="url(#glowBlur)">
+                                <circle cx="72" cy="146" r="3.2" fill="#7dd3fc"/>
+                                <path d="M72 138 L73.5 144.5 L80 146 L73.5 147.5 L72 154 L70.5 147.5 L64 146 L70.5 144.5 Z" fill="#e0f2fe"/>
+                            </g>
+                            <!-- Đốm sáng nhỏ trên thân nút -->
+                            <circle cx="385" cy="96" r="3.5" fill="#7dd3fc" opacity="0.85" filter="url(#glowBlur)"/>
+                        </svg>
+
+                        <!-- Khối viên thuốc xanh dương đậm -->
+                        <div class="hero-pill-logo relative px-10 sm:px-14 py-5 sm:py-6 rounded-full flex items-center justify-center">
+                            <span class="text-white font-bold italic tracking-tight text-4xl sm:text-5xl md:text-[54px] drop-shadow-sm">
+                                RadioBioCalc
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Dòng mô tả chính -->
+                    <p class="text-slate-700 font-semibold text-base sm:text-lg md:text-[19px] max-w-lg leading-relaxed mb-8 px-2">
+                        Hệ thống Tính toán BED, Chuyển đổi Phác đồ &amp; Hiệu chỉnh Phân liều Xạ trị
+                    </p>
+
+                    <!-- Nút CTA "Bắt đầu ->" -->
+                    <button onclick="switchTab('bed-basic')" class="cta-pill-btn text-white font-semibold text-base sm:text-[17px] px-11 py-3.5 rounded-full inline-flex items-center gap-3 cursor-pointer">
+                        <span>Bắt đầu</span>
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Footer góc dưới bên trái: 2 Logo chính xác + Tên Khoa & Trường -->
+                <div class="pt-6 flex flex-wrap items-center justify-center sm:justify-start gap-3.5 text-slate-600">
+                    <!-- Logo 1: Trường ĐH Khoa học Tự nhiên - ĐHQG HCM -->
+                    <img 
+                        src="image_7ba37f.png" 
+                        alt="Logo Trường Đại học Khoa học Tự nhiên - ĐHQG-HCM" 
+                        class="w-12 h-12 rounded-full object-contain bg-white shrink-0 border border-slate-200/80 shadow-xs"
+                    >
+
+                    <div class="h-9 w-[1px] bg-slate-300"></div>
+
+                    <!-- Logo 2: Bộ môn VLHN - KTHN - VLYK -->
+                    <img 
+                        src="image_7ba399.png" 
+                        alt="Logo Bộ môn VLHN - KTHN - VLYK" 
+                        class="h-12 w-auto max-w-[84px] object-contain bg-white shrink-0 rounded-md px-1 border border-slate-200/80 shadow-xs"
+                    >
+
+                    <div class="h-9 w-[1px] bg-slate-300 hidden sm:block"></div>
+
+                    <!-- Dòng tên Khoa & Trường -->
+                    <div class="text-[12.5px] sm:text-[13px] font-medium text-slate-600 leading-snug">
+                        Khoa Vật lý - Vật lý kĩ thuật, Trường ĐH KHTN - ĐHQG HCM
+                    </div>
+                </div>
+            </div>
+
+            <!-- PHẦN BÊN PHẢI: KHỐI CẮT CHÉO MÀU XANH NAVY ĐẬM -->
+            <div class="w-full lg:w-[48%] lg:absolute lg:right-0 lg:top-0 lg:bottom-0 flex flex-col justify-center">
+                <!-- Các lớp dải sáng chéo tạo chiều sâu giống hệt thiết kế -->
+                <div class="hidden lg:block absolute inset-0 diagonal-ribbon-back pointer-events-none"></div>
+                <div class="hidden lg:block absolute inset-0 diagonal-ribbon-mid pointer-events-none"></div>
+                
+                <!-- Khối nền Navy đậm chính -->
+                <div class="diagonal-navy-panel relative w-full h-full flex flex-col justify-center px-8 sm:px-14 lg:pl-[34%] lg:pr-12 py-12 lg:py-10 text-white">
+                    
+                    <div class="max-w-md space-y-6">
+                        <!-- Mục 1: GVHD -->
+                        <div class="pb-5 border-b border-white/15">
+                            <div class="text-[11.5px] font-bold tracking-wider uppercase text-[#60a5fa] mb-1.5">
+                                GVHD
+                            </div>
+                            <div class="text-xl sm:text-2xl font-bold text-white tracking-tight">
+                                TS. Nguyễn Thị Cẩm Thu
+                            </div>
+                        </div>
+
+                        <!-- Mục 2: MÔN HỌC -->
+                        <div class="pb-5 border-b border-white/15">
+                            <div class="text-[11.5px] font-bold tracking-wider uppercase text-[#60a5fa] mb-1.5">
+                                MÔN HỌC
+                            </div>
+                            <div class="text-xl sm:text-2xl font-bold text-white tracking-tight">
+                                Sinh học bức xạ
+                            </div>
+                        </div>
+
+                        <!-- Mục 3: NHÓM THỰC HIỆN -->
+                        <div class="pb-5 border-b border-white/15">
+                            <div class="text-[11.5px] font-bold tracking-wider uppercase text-[#60a5fa] mb-1.5">
+                                NHÓM THỰC HIỆN
+                            </div>
+                            <div class="text-xl sm:text-2xl font-bold text-white tracking-tight">
+                                Nhóm 4
+                            </div>
+                        </div>
+
+                        <!-- Ghi chú mô hình LQ -->
+                        <div class="pt-2 text-[14.5px] sm:text-[15.5px] text-slate-200/95 leading-relaxed font-normal">
+                            Mô tả những tình huống giả định dựa trên Mô hình Tuyến tính – Bậc hai
+                            <span class="block italic text-[#7dd3fc] font-medium mt-0.5">(Linear-Quadratic Model)</span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </section>
+
+        <!-- ==================== TAB 1: GIỚI THIỆU ==================== -->
+        <section id="tab-intro" class="tab-panel hidden max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
+                <div class="bg-gradient-to-r from-[#071e3d] to-[#0056b3] px-6 sm:px-10 py-8 text-white">
+                    <span class="inline-block px-3 py-1 rounded-full bg-white/15 text-xs font-semibold tracking-wider uppercase mb-3">Cơ sở Lý thuyết &amp; Hướng dẫn</span>
+                    <h1 class="text-2xl sm:text-3xl font-bold tracking-tight">Mô hình Tuyến tính – Bậc hai (Linear-Quadratic Model)</h1>
+                    <p class="text-blue-100 mt-2 max-w-3xl text-sm sm:text-base leading-relaxed">
+                        Nền tảng định lượng cốt lõi trong Vật lý Y khoa và Xạ trị học hiện đại để đánh giá đáp ứng sinh học của mô bướu và mô lành đối với các phác đồ phân liều khác nhau.
+                    </p>
+                </div>
+
+                <div class="p-6 sm:p-10 space-y-8">
+                    <!-- 3 thẻ tóm tắt công thức -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="p-5 rounded-xl bg-blue-50/70 border border-blue-100">
+                            <div class="text-xs font-bold uppercase text-blue-700 mb-1">1. Tỷ lệ sống sót tế bào (SF)</div>
+                            <div class="text-lg font-bold text-slate-900 my-2 font-mono">SF = exp(-αD - βdD)</div>
+                            <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                                Trong đó <strong>α</strong> đặc trưng cho tổn thương đứt gãy chuỗi kép DNA không hồi phục (tuyến tính theo liều) và <strong>β</strong> đặc trưng cho tổn thương tích lũy có thể hồi phục (bậc hai theo liều).
+                            </p>
+                        </div>
+
+                        <div class="p-5 rounded-xl bg-indigo-50/70 border border-indigo-100">
+                            <div class="text-xs font-bold uppercase text-indigo-700 mb-1">2. Liều Hiệu dụng Sinh học (BED)</div>
+                            <div class="text-lg font-bold text-slate-900 my-2 font-mono">BED = n·d·[1 + d / (α/β)]</div>
+                            <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                                Biểu thị tổng liều vật lý cần thiết nếu chiếu xạ với suất liều cực thấp hoặc phân liều vô cùng nhỏ (d → 0) để đạt cùng một hiệu ứng sinh học. Đơn vị: <strong>Gy<sub>α/β</sub></strong>.
+                            </p>
+                        </div>
+
+                        <div class="p-5 rounded-xl bg-sky-50/70 border border-sky-100">
+                            <div class="text-xs font-bold uppercase text-sky-700 mb-1">3. Liều Tương đương 2 Gy (EQD2)</div>
+                            <div class="text-lg font-bold text-slate-900 my-2 font-mono">EQD2 = BED / [1 + 2 / (α/β)]</div>
+                            <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                                Quy đổi bất kỳ phác đồ xạ trị nào về tổng liều tương đương của phác đồ chuẩn <strong>2 Gy/phân liều</strong>, giúp bác sĩ dễ dàng so sánh giới hạn chịu đựng của cơ quan nguy cấp (OAR).
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Bảng ý nghĩa thông số Alpha / Beta -->
+                    <div>
+                        <h2 class="text-lg font-bold text-slate-900 mb-3">Ý nghĩa sinh học của tỷ số α/β</h2>
+                        <div class="overflow-x-auto border border-slate-200 rounded-xl">
+                            <table class="w-full text-left border-collapse text-sm">
+                                <thead>
+                                    <tr class="bg-slate-100 text-slate-700 border-b border-slate-200">
+                                        <th class="py-3 px-4 font-semibold">Nhóm mô / Khối u</th>
+                                        <th class="py-3 px-4 font-semibold">Giá trị α/β điển hình</th>
+                                        <th class="py-3 px-4 font-semibold">Đặc điểm đáp ứng phân liều</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-200">
+                                    <tr>
+                                        <td class="py-3 px-4 font-medium text-slate-900">Mô đáp ứng sớm &amp; Đa số khối u (Tủy xương, niêm mạc, u biểu mô)</td>
+                                        <td class="py-3 px-4 font-mono font-semibold text-blue-700">~ 10 Gy</td>
+                                        <td class="py-3 px-4 text-slate-600">Ít nhạy cảm với thay đổi kích thước liều mỗi phân liều (d), nhưng chịu ảnh hưởng lớn bởi tổng thời gian điều trị (tái sinh nhanh).</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-3 px-4 font-medium text-slate-900">Mô lành đáp ứng muộn (Tủy sống, phổi, thận, não, mô liên kết)</td>
+                                        <td class="py-3 px-4 font-mono font-semibold text-amber-700">2 – 3 Gy</td>
+                                        <td class="py-3 px-4 text-slate-600">Rất nhạy cảm với liều mỗi phân liều (d). Tăng liều mỗi buổi (hypofractionation) làm tăng mạnh độc tính muộn.</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-3 px-4 font-medium text-slate-900">Khối u tăng sinh chậm (Ung thư tuyến tiền liệt, ung thư vú)</td>
+                                        <td class="py-3 px-4 font-mono font-semibold text-emerald-700">1.5 – 4 Gy</td>
+                                        <td class="py-3 px-4 text-slate-600">Có tỷ số α/β thấp hơn hoặc tương đương mô lành lân cận, tạo cơ sở khoa học cho xạ trị giảm phân liều (SBRT / Hypofractionation).</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Hướng dẫn 4 công cụ -->
+                    <div class="bg-slate-50 rounded-xl p-5 border border-slate-200/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                        <div>
+                            <h3 class="font-bold text-slate-900">Sẵn sàng thực hành tính toán?</h3>
+                            <p class="text-sm text-slate-600 mt-0.5">Chọn một trong 4 mô-đun tính toán chuyên sâu trên thanh điều hướng để bắt đầu mô phỏng ca lâm sàng.</p>
+                        </div>
+                        <button onclick="switchTab('bed-basic')" class="px-5 py-2.5 rounded-full bg-[#0062cc] hover:bg-[#004ea8] text-white text-sm font-semibold transition-colors shrink-0">
+                            Mở công cụ 1. BED Cơ bản →
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== TAB 2: 1. BED CƠ BẢN ==================== -->
+        <section id="tab-bed-basic" class="tab-panel hidden max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
+            <div class="mb-6">
+                <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-blue-600 mb-1">
+                    <span>Mô-đun 01</span>
+                    <span>•</span>
+                    <span>Mô hình LQ Chuẩn</span>
+                </div>
+                <h1 class="text-2xl sm:text-3xl font-bold text-slate-900">Tính toán BED Cơ bản &amp; EQD2</h1>
+                <p class="text-slate-600 text-sm sm:text-base mt-1">Đánh giá Liều Hiệu dụng Sinh học và Liều Tương đương 2 Gy cho mô đích hoặc cơ quan nguy cấp.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Cột nhập liệu -->
+                <div class="lg:col-span-7 bg-white rounded-2xl p-6 shadow-sm border border-slate-200/80 space-y-5">
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Chọn nhanh Preset Mô / Khối u (α/β)</label>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                            <button type="button" onclick="setBasicPreset(1.5)" class="p-3 rounded-xl border border-slate-200 hover:border-blue-500 hover:bg-blue-50/50 text-left transition-all">
+                                <div class="text-xs font-bold text-blue-700">α/β = 1.5 Gy</div>
+                                <div class="text-xs text-slate-600 mt-0.5">U tuyến tiền liệt</div>
+                            </button>
+                            <button type="button" onclick="setBasicPreset(3)" class="p-3 rounded-xl border border-slate-200 hover:border-blue-500 hover:bg-blue-50/50 text-left transition-all">
+                                <div class="text-xs font-bold text-amber-700">α/β = 3.0 Gy</div>
+                                <div class="text-xs text-slate-600 mt-0.5">Mô lành đáp ứng muộn</div>
+                            </button>
+                            <button type="button" onclick="setBasicPreset(10)" class="p-3 rounded-xl border border-slate-200 hover:border-blue-500 hover:bg-blue-50/50 text-left transition-all">
+                                <div class="text-xs font-bold text-emerald-700">α/β = 10.0 Gy</div>
+                                <div class="text-xs text-slate-600 mt-0.5">Khối u chung / Cấp tính</div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                        <div>
+                            <label for="basic-n" class="block text-sm font-semibold text-slate-700 mb-1.5">Số phân liều (n)</label>
+                            <div class="relative">
+                                <input id="basic-n" type="number" min="1" step="1" value="30" oninput="calcBasicBED()" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none font-semibold text-slate-900">
+                                <span class="absolute right-3.5 top-2.5 text-sm text-slate-400">buổi</span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="basic-d" class="block text-sm font-semibold text-slate-700 mb-1.5">Liều mỗi phân liều (d)</label>
+                            <div class="relative">
+                                <input id="basic-d" type="number" min="0.1" step="0.1" value="2.0" oninput="calcBasicBED()" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none font-semibold text-slate-900">
+                                <span class="absolute right-3.5 top-2.5 text-sm text-slate-400">Gy</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="basic-ab" class="block text-sm font-semibold text-slate-700 mb-1.5">Tỷ số α/β của mô khảo sát</label>
+                        <div class="relative">
+                            <input id="basic-ab" type="number" min="0.1" step="0.1" value="10" oninput="calcBasicBED()" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none font-semibold text-slate-900">
+                            <span class="absolute right-3.5 top-2.5 text-sm text-slate-400">Gy</span>
+                        </div>
+                    </div>
+
+                    <!-- Công thức minh họa -->
+                    <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/80 text-xs sm:text-sm text-slate-600 space-y-1 font-mono">
+                        <div>BED = n × d × (1 + d / [α/β])</div>
+                        <div>EQD2 = BED / (1 + 2 / [α/β])</div>
+                    </div>
+                </div>
+
+                <!-- Cột kết quả -->
+                <div class="lg:col-span-5 flex flex-col gap-4">
+                    <div class="bg-gradient-to-br from-[#071e3d] to-[#0b356e] rounded-2xl p-6 text-white shadow-md flex-1 flex flex-col justify-between">
+                        <div>
+                            <div class="text-xs font-bold uppercase tracking-wider text-blue-300 mb-4">Kết quả Tính toán</div>
+                            
+                            <div class="mb-6">
+                                <div class="text-sm text-blue-200">Tổng liều vật lý (D = n × d)</div>
+                                <div class="text-2xl font-bold mt-0.5"><span id="res-basic-total">60.00</span> <span class="text-base font-normal text-blue-200">Gy</span></div>
+                            </div>
+
+                            <div class="p-4 rounded-xl bg-white/10 border border-white/15 mb-4">
+                                <div class="text-xs font-semibold uppercase tracking-wider text-sky-300">Liều Hiệu dụng Sinh học (BED)</div>
+                                <div class="text-3xl sm:text-4xl font-extrabold mt-1 tracking-tight text-white">
+                                    <span id="res-basic-bed">72.00</span> <span id="res-basic-bed-unit" class="text-lg font-medium text-sky-200">Gy₁₀</span>
+                                </div>
+                            </div>
+
+                            <div class="p-4 rounded-xl bg-white/10 border border-white/15">
+                                <div class="text-xs font-semibold uppercase tracking-wider text-emerald-300">Liều Tương đương 2 Gy (EQD2)</div>
+                                <div class="text-3xl sm:text-4xl font-extrabold mt-1 tracking-tight text-white">
+                                    <span id="res-basic-eqd2">60.00</span> <span class="text-lg font-medium text-emerald-200">Gy</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="res-basic-note" class="mt-6 pt-4 border-t border-white/15 text-xs text-blue-100 leading-relaxed">
+                            Phác đồ chuẩn 2 Gy/buổi cho mô có α/β = 10 Gy: giá trị EQD2 trùng khớp với tổng liều vật lý.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== TAB 3: 2. BED TÁI SINH ==================== -->
+        <section id="tab-bed-repop" class="tab-panel hidden max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
+            <div class="mb-6">
+                <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-blue-600 mb-1">
+                    <span>Mô-đun 02</span>
+                    <span>•</span>
+                    <span>Hiệu chỉnh Thời gian &amp; Tăng sinh Nhanh</span>
+                </div>
+                <h1 class="text-2xl sm:text-3xl font-bold text-slate-900">Tính toán BED có Tái sinh Tế bào (Repopulation)</h1>
+                <p class="text-slate-600 text-sm sm:text-base mt-1">Tính toán sự suy giảm BED do hiện tượng tăng sinh bù trừ (accelerated repopulation) của tế bào bướu sau thời gian trễ T<sub>k</sub>.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Cột nhập liệu -->
+                <div class="lg:col-span-7 bg-white rounded-2xl p-6 shadow-sm border border-slate-200/80 space-y-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div>
+                            <label for="repop-n" class="block text-xs font-bold text-slate-700 mb-1">Số phân liều (n)</label>
+                            <input id="repop-n" type="number" min="1" step="1" value="35" oninput="calcRepopBED()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none font-semibold">
+                        </div>
+                        <div>
+                            <label for="repop-d" class="block text-xs font-bold text-slate-700 mb-1">Liều/phân liều d (Gy)</label>
+                            <input id="repop-d" type="number" min="0.1" step="0.1" value="2.0" oninput="calcRepopBED()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none font-semibold">
+                        </div>
+                        <div>
+                            <label for="repop-ab" class="block text-xs font-bold text-slate-700 mb-1">Tỷ số α/β (Gy)</label>
+                            <input id="repop-ab" type="number" min="0.1" step="0.1" value="10" oninput="calcRepopBED()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none font-semibold">
+                        </div>
+                    </div>
+
+                    <div class="border-t border-slate-100 pt-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-bold uppercase tracking-wider text-blue-700">Thông số động học tăng sinh khối u</span>
+                            <button type="button" onclick="setHeadNeckPreset()" class="text-xs font-semibold text-blue-600 hover:underline">Preset: Ung thư Đầu - Cổ</button>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label for="repop-T" class="block text-xs font-bold text-slate-700 mb-1">Tổng thời gian điều trị T (ngày)</label>
+                                <input id="repop-T" type="number" min="1" step="1" value="49" oninput="calcRepopBED()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none font-semibold">
+                                <span class="text-[11px] text-slate-400">Tính từ ngày chiếu đầu tiên đến cuối cùng</span>
+                            </div>
+                            <div>
+                                <label for="repop-Tk" class="block text-xs font-bold text-slate-700 mb-1">Thời gian trễ khởi phát T<sub>k</sub> (ngày)</label>
+                                <input id="repop-Tk" type="number" min="0" step="1" value="21" oninput="calcRepopBED()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none font-semibold">
+                                <span class="text-[11px] text-slate-400">Thường 21 - 28 ngày đối với u biểu mô</span>
+                            </div>
+                            <div>
+                                <label for="repop-Tp" class="block text-xs font-bold text-slate-700 mb-1">Thời gian nhân đôi tiềm tàng T<sub>p</sub> (ngày)</label>
+                                <input id="repop-Tp" type="number" min="0.5" step="0.5" value="3.0" oninput="calcRepopBED()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none font-semibold">
+                                <span class="text-[11px] text-slate-400">Tốc độ phân chia tế bào khi tái sinh nhanh</span>
+                            </div>
+                            <div>
+                                <label for="repop-alpha" class="block text-xs font-bold text-slate-700 mb-1">Độ nhạy bức xạ tuyến tính α (Gy⁻¹)</label>
+                                <input id="repop-alpha" type="number" min="0.05" step="0.01" value="0.30" oninput="calcRepopBED()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none font-semibold">
+                                <span class="text-[11px] text-slate-400">Hệ số thất thoát K = ln(2)/(α·T<sub>p</sub>)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 text-xs font-mono text-slate-600">
+                        BED<sub>eff</sub> = n·d·(1 + d/[α/β]) − [ln(2) / (α · T<sub>p</sub>)] × max(0, T − T<sub>k</sub>)
+                    </div>
+                </div>
+
+                <!-- Cột kết quả -->
+                <div class="lg:col-span-5 bg-gradient-to-br from-[#071e3d] to-[#0b356e] rounded-2xl p-6 text-white shadow-md flex flex-col justify-between">
+                    <div class="space-y-4">
+                        <div class="text-xs font-bold uppercase tracking-wider text-blue-300">Phân tích Hiệu chỉnh Thời gian</div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="p-3.5 rounded-xl bg-white/10 border border-white/10">
+                                <div class="text-xs text-blue-200">BED ban đầu (chưa trừ)</div>
+                                <div class="text-xl font-bold mt-1"><span id="res-repop-raw">84.00</span> <span class="text-xs font-normal">Gy</span></div>
+                            </div>
+                            <div class="p-3.5 rounded-xl bg-rose-500/20 border border-rose-400/30">
+                                <div class="text-xs text-rose-200">BED mất do tái sinh</div>
+                                <div class="text-xl font-bold text-rose-200 mt-1">-<span id="res-repop-loss">21.56</span> <span class="text-xs font-normal">Gy</span></div>
+                            </div>
+                        </div>
+
+                        <div class="p-4 rounded-xl bg-white/10 border border-white/15">
+                            <div class="text-xs font-semibold uppercase tracking-wider text-sky-300">BED Hiệu dụng Thực tế (BED<sub>eff</sub>)</div>
+                            <div class="text-3xl sm:text-4xl font-extrabold mt-1 text-white">
+                                <span id="res-repop-net">62.44</span> <span class="text-lg font-medium text-sky-200">Gy</span>
+                            </div>
+                        </div>
+
+                        <div class="p-4 rounded-xl bg-white/10 border border-white/15">
+                            <div class="text-xs font-semibold uppercase tracking-wider text-emerald-300">EQD2 Hiệu dụng (có tái sinh)</div>
+                            <div class="text-2xl font-bold mt-1 text-white">
+                                <span id="res-repop-eqd2">52.03</span> <span class="text-base font-medium text-emerald-200">Gy</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-5 pt-4 border-t border-white/15 text-xs text-blue-100 space-y-1">
+                        <div>• Hệ số mất liều mỗi ngày (K): <strong id="res-repop-k" class="text-white">0.77 Gy/ngày</strong></div>
+                        <div>• Số ngày chịu tái sinh (T - T<sub>k</sub>): <strong id="res-repop-days" class="text-white">28 ngày</strong></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== TAB 4: 3. CHUYỂN ĐỔI PHÁC ĐỒ ==================== -->
+        <section id="tab-regimen" class="tab-panel hidden max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
+            <div class="mb-6">
+                <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-blue-600 mb-1">
+                    <span>Mô-đun 03</span>
+                    <span>•</span>
+                    <span>Đẳng hiệu ứng Sinh học (Iso-effective)</span>
+                </div>
+                <h1 class="text-2xl sm:text-3xl font-bold text-slate-900">Chuyển đổi Phác đồ Xạ trị</h1>
+                <p class="text-slate-600 text-sm sm:text-base mt-1">Tìm thông số phác đồ mới giữ nguyên BED trên khối u đích, đồng thời tự động đánh giá tác động lên mô lành lân cận.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Cột thiết lập -->
+                <div class="lg:col-span-7 bg-white rounded-2xl p-6 shadow-sm border border-slate-200/80 space-y-5">
+                    
+                    <!-- Phác đồ chuẩn ban đầu -->
+                    <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
+                        <div class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">A. Phác đồ Chuẩn Ban đầu</div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Số phân liều chuẩn (n₁)</label>
+                                <input id="reg-n1" type="number" min="1" step="1" value="30" oninput="calcRegimen()" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 bg-white font-semibold">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Liều/phân liều chuẩn d₁ (Gy)</label>
+                                <input id="reg-d1" type="number" min="0.1" step="0.1" value="2.0" oninput="calcRegimen()" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 bg-white font-semibold">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Thông số sinh học mô đích & mô lành -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-blue-700 mb-1">α/β Khối u đích (Gy)</label>
+                            <input id="reg-ab-tumor" type="number" min="0.1" step="0.1" value="10" oninput="calcRegimen()" class="w-full px-3.5 py-2 rounded-xl border border-blue-200 bg-blue-50/30 font-semibold">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-amber-700 mb-1">α/β Mô lành nguy cấp OAR (Gy)</label>
+                            <input id="reg-ab-oar" type="number" min="0.1" step="0.1" value="3.0" oninput="calcRegimen()" class="w-full px-3.5 py-2 rounded-xl border border-amber-200 bg-amber-50/30 font-semibold">
+                        </div>
+                    </div>
+
+                    <!-- Phác đồ mới -->
+                    <div class="p-4 rounded-xl bg-blue-50/60 border border-blue-200/80 space-y-3">
+                        <div class="text-xs font-bold uppercase tracking-wider text-blue-800">B. Thiết lập Phác đồ Mới</div>
+                        
+                        <div class="flex flex-wrap gap-2">
+                            <label class="inline-flex items-center gap-2 text-xs font-semibold text-slate-700 bg-white px-3 py-2 rounded-lg border border-slate-200 cursor-pointer">
+                                <input type="radio" name="reg-mode" value="given-n2" checked onchange="toggleRegimenMode()">
+                                <span>Biết số phân liều mới (n₂) → Tính d₂</span>
+                            </label>
+                            <label class="inline-flex items-center gap-2 text-xs font-semibold text-slate-700 bg-white px-3 py-2 rounded-lg border border-slate-200 cursor-pointer">
+                                <input type="radio" name="reg-mode" value="given-d2" onchange="toggleRegimenMode()">
+                                <span>Biết liều mỗi buổi mới (d₂) → Tính n₂</span>
+                            </label>
+                        </div>
+
+                        <div id="reg-input-n2-wrap">
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Nhập số phân liều mới mong muốn (n₂)</label>
+                            <input id="reg-n2" type="number" min="1" step="1" value="15" oninput="calcRegimen()" class="w-full px-3.5 py-2.5 rounded-xl border border-blue-300 bg-white font-bold text-blue-900">
+                        </div>
+
+                        <div id="reg-input-d2-wrap" class="hidden">
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Nhập liều mỗi phân liều mới mong muốn d₂ (Gy)</label>
+                            <input id="reg-d2" type="number" min="0.1" step="0.1" value="3.5" oninput="calcRegimen()" class="w-full px-3.5 py-2.5 rounded-xl border border-blue-300 bg-white font-bold text-blue-900">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cột kết quả & Cảnh báo OAR -->
+                <div class="lg:col-span-5 flex flex-col gap-4">
+                    <div class="bg-gradient-to-br from-[#071e3d] to-[#0b356e] rounded-2xl p-6 text-white shadow-md">
+                        <div class="text-xs font-bold uppercase tracking-wider text-blue-300 mb-3">Phác đồ Mới Đề xuất (Iso-BED Khối u)</div>
+                        
+                        <div class="p-4 rounded-xl bg-white/10 border border-white/15 mb-4">
+                            <div class="text-xs text-sky-200">Phác đồ chuyển đổi tương đương</div>
+                            <div class="text-2xl sm:text-3xl font-extrabold mt-1 text-white" id="res-reg-summary">
+                                15 buổi × 3.45 Gy
+                            </div>
+                            <div class="text-xs text-blue-200 mt-1">
+                                Tổng liều vật lý mới: <strong id="res-reg-total-d" class="text-white">51.75 Gy</strong> (so với <span id="res-reg-old-d">60.00 Gy</span>)
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3 text-xs">
+                            <div class="p-3 rounded-xl bg-white/10">
+                                <div class="text-blue-200">BED Khối u (Bảo toàn)</div>
+                                <div class="text-lg font-bold text-emerald-300 mt-0.5"><span id="res-reg-bed-tumor">72.00</span> Gy</div>
+                            </div>
+                            <div class="p-3 rounded-xl bg-white/10">
+                                <div class="text-blue-200">EQD2 Khối u</div>
+                                <div class="text-lg font-bold text-white mt-0.5"><span id="res-reg-eqd2-tumor">60.00</span> Gy</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Thẻ cảnh báo tác động lên mô lành -->
+                    <div id="res-reg-oar-card" class="rounded-2xl p-5 border bg-amber-50 border-amber-200 text-slate-800 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold uppercase tracking-wider text-amber-800">Đánh giá Mô lành Nguy cấp (OAR)</span>
+                            <span id="res-reg-oar-badge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-200 text-amber-900">+11.3% BED</span>
+                        </div>
+                        <div class="text-sm">
+                            BED mô lành thay đổi từ <strong id="res-reg-oar-old">100.00 Gy</strong> → <strong id="res-reg-oar-new">111.26 Gy</strong>
+                        </div>
+                        <p id="res-reg-oar-advice" class="text-xs text-slate-600 leading-relaxed">
+                            Cảnh báo: Tăng liều mỗi phân liều làm tăng BED trên mô lành đáp ứng muộn. Cần kiểm tra kỹ giới hạn liều OAR (DVH) trước khi phê duyệt.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== TAB 5: 4. SỬA SAI PHÂN LIỀU ==================== -->
+        <section id="tab-gap" class="tab-panel hidden max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
+            <div class="mb-6">
+                <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-blue-600 mb-1">
+                    <span>Mô-đun 04</span>
+                    <span>•</span>
+                    <span>Quản lý Gián đoạn Điều trị (Unscheduled Gap)</span>
+                </div>
+                <h1 class="text-2xl sm:text-3xl font-bold text-slate-900">Sửa sai Phân liều &amp; Bù liều Gián đoạn</h1>
+                <p class="text-slate-600 text-sm sm:text-base mt-1">Tính toán phần BED còn thiếu khi bệnh nhân tạm nghỉ điều trị đột xuất (máy hỏng, lễ tết, độc tính cấp) và đề xuất phương án bù liều.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Cột nhập liệu -->
+                <div class="lg:col-span-7 bg-white rounded-2xl p-6 shadow-sm border border-slate-200/80 space-y-5">
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Kế hoạch ban đầu (n<sub>kế hoạch</sub>)</label>
+                            <input id="gap-n-plan" type="number" min="1" step="1" value="33" oninput="calcGapCompensation()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-semibold">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Liều/buổi chuẩn d (Gy)</label>
+                            <input id="gap-d-plan" type="number" min="0.1" step="0.1" value="2.0" oninput="calcGapCompensation()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-semibold">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Tỷ số α/β khối u (Gy)</label>
+                            <input id="gap-ab" type="number" min="0.1" step="0.1" value="10" oninput="calcGapCompensation()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-semibold">
+                        </div>
+                    </div>
+
+                    <div class="border-t border-slate-100 pt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-blue-700 mb-1">Số buổi đã chiếu trước khi nghỉ (n<sub>đã chiếu</sub>)</label>
+                            <input id="gap-n-done" type="number" min="0" step="1" value="15" oninput="calcGapCompensation()" class="w-full px-3.5 py-2.5 rounded-xl border border-blue-200 bg-blue-50/30 font-semibold">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-rose-700 mb-1">Số ngày bị gián đoạn thêm (ΔT<sub>nghỉ</sub>)</label>
+                            <input id="gap-days" type="number" min="0" step="1" value="7" oninput="calcGapCompensation()" class="w-full px-3.5 py-2.5 rounded-xl border border-rose-200 bg-rose-50/30 font-semibold">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Hệ số thất thoát tái sinh K (Gy/ngày)</label>
+                            <input id="gap-k" type="number" min="0" step="0.05" value="0.60" oninput="calcGapCompensation()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-semibold">
+                            <span class="text-[11px] text-slate-400">K = ln(2)/(α·T<sub>p</sub>) ≈ 0.5 – 0.8 Gy/ngày với u đầu cổ</span>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Số buổi dự kiến chiếu tiếp (n<sub>còn lại</sub>)</label>
+                            <input id="gap-n-rem" type="number" min="1" step="1" value="18" oninput="calcGapCompensation()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-semibold">
+                            <span class="text-[11px] text-slate-400">Số phân liều còn lại để hoàn tất phác đồ</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cột kết quả bù liều -->
+                <div class="lg:col-span-5 bg-gradient-to-br from-[#071e3d] to-[#0b356e] rounded-2xl p-6 text-white shadow-md flex flex-col justify-between space-y-5">
+                    <div class="space-y-4">
+                        <div class="text-xs font-bold uppercase tracking-wider text-blue-300">Phác đồ Bù liều Đề xuất</div>
+
+                        <div class="grid grid-cols-2 gap-3 text-xs">
+                            <div class="p-3.5 rounded-xl bg-white/10">
+                                <div class="text-blue-200">BED Mục tiêu ban đầu</div>
+                                <div class="text-lg font-bold text-white mt-0.5"><span id="res-gap-target">79.20</span> Gy</div>
+                            </div>
+                            <div class="p-3.5 rounded-xl bg-rose-500/20 border border-rose-400/30">
+                                <div class="text-rose-200">BED Hao hụt do nghỉ</div>
+                                <div class="text-lg font-bold text-rose-200 mt-0.5">+<span id="res-gap-penalty">4.20</span> Gy</div>
+                            </div>
+                        </div>
+
+                        <div class="p-4 rounded-xl bg-white/10 border border-white/15">
+                            <div class="text-xs text-sky-200">Tổng BED cần đạt trong giai đoạn còn lại</div>
+                            <div class="text-2xl font-bold text-white mt-0.5"><span id="res-gap-rem-bed">47.40</span> Gy</div>
+                        </div>
+
+                        <div class="p-4 rounded-xl bg-emerald-500/20 border border-emerald-400/40">
+                            <div class="text-xs font-bold uppercase tracking-wider text-emerald-300">Liều mới mỗi buổi còn lại (d<sub>mới</sub>)</div>
+                            <div class="text-3xl sm:text-4xl font-extrabold text-white mt-1">
+                                <span id="res-gap-new-d">2.16</span> <span class="text-lg font-medium text-emerald-200">Gy / buổi</span>
+                            </div>
+                            <div class="text-xs text-emerald-100 mt-1.5">
+                                Chiếu trong <strong id="res-gap-rem-n">18</strong> buổi còn lại (tăng thêm <strong id="res-gap-delta-d">+0.16 Gy</strong>/buổi)
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="res-gap-warning" class="pt-3 border-t border-white/15 text-xs text-blue-100 leading-relaxed">
+                        Gợi ý lâm sàng: Có thể chia đều liều tăng thêm vào các buổi còn lại hoặc chiếu 2 buổi/ngày (cách nhau ≥ 6 giờ) vào cuối tuần để giữ nguyên tổng thời gian điều trị.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ================= JAVASCRIPT LOGIC ================= -->
+    <script>
+        // Quản lý chuyển đổi giữa các tab
+        const tabs = ['home', 'intro', 'bed-basic', 'bed-repop', 'regimen', 'gap'];
+
+        function switchTab(targetTab) {
+            tabs.forEach(tab => {
+                const section = document.getElementById('tab-' + tab);
+                const navBtn = document.getElementById('nav-' + tab);
+                
+                if (tab === targetTab) {
+                    section.classList.remove('hidden');
+                    navBtn.classList.add('bg-white', 'text-[#0056b3]', 'shadow-sm', 'font-semibold');
+                    navBtn.classList.remove('text-slate-600', 'font-medium');
+                } else {
+                    section.classList.add('hidden');
+                    navBtn.classList.remove('bg-white', 'text-[#0056b3]', 'shadow-sm', 'font-semibold');
+                    navBtn.classList.add('text-slate-600', 'font-medium');
+                }
+            });
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // ---------------- MÔ-ĐUN 1: BED CƠ BẢN ----------------
+        function setBasicPreset(abValue) {
+            document.getElementById('basic-ab').value = abValue;
+            calcBasicBED();
+        }
+
+        function calcBasicBED() {
+            const n = parseFloat(document.getElementById('basic-n').value) || 0;
+            const d = parseFloat(document.getElementById('basic-d').value) || 0;
+            const ab = parseFloat(document.getElementById('basic-ab').value) || 1;
+
+            const totalD = n * d;
+            const bed = totalD * (1 + d / ab);
+            const eqd2 = bed / (1 + 2 / ab);
+
+            document.getElementById('res-basic-total').textContent = totalD.toFixed(2);
+            document.getElementById('res-basic-bed').textContent = bed.toFixed(2);
+            document.getElementById('res-basic-bed-unit').innerHTML = `Gy<sub>${ab}</sub>`;
+            document.getElementById('res-basic-eqd2').textContent = eqd2.toFixed(2);
+
+            const noteEl = document.getElementById('res-basic-note');
+            if (Math.abs(d - 2.0) < 0.01) {
+                noteEl.textContent = `Với liều chuẩn 2.0 Gy/phân liều, giá trị EQD2 (${eqd2.toFixed(2)} Gy) bằng đúng tổng liều vật lý.`;
+            } else if (d > 2.0) {
+                noteEl.textContent = `Phác đồ giảm phân liều (Hypofractionation, d > 2 Gy): EQD2 (${eqd2.toFixed(2)} Gy) cao hơn tổng liều vật lý (${totalD.toFixed(2)} Gy), đặc biệt nhạy với mô có α/β thấp.`;
+            } else {
+                noteEl.textContent = `Phác đồ tăng phân liều (Hyperfractionation, d < 2 Gy): EQD2 (${eqd2.toFixed(2)} Gy) thấp hơn tổng liều vật lý, giúp bảo vệ mô lành đáp ứng muộn.`;
+            }
+        }
+
+        // ---------------- MÔ-ĐUN 2: BED TÁI SINH ----------------
+        function setHeadNeckPreset() {
+            document.getElementById('repop-n').value = 35;
+            document.getElementById('repop-d').value = 2.0;
+            document.getElementById('repop-ab').value = 10;
+            document.getElementById('repop-T').value = 49;
+            document.getElementById('repop-Tk').value = 21;
+            document.getElementById('repop-Tp').value = 3.0;
+            document.getElementById('repop-alpha').value = 0.30;
+            calcRepopBED();
+        }
+
+        function calcRepopBED() {
+            const n = parseFloat(document.getElementById('repop-n').value) || 0;
+            const d = parseFloat(document.getElementById('repop-d').value) || 0;
+            const ab = parseFloat(document.getElementById('repop-ab').value) || 1;
+            const T = parseFloat(document.getElementById('repop-T').value) || 0;
+            const Tk = parseFloat(document.getElementById('repop-Tk').value) || 0;
+            const Tp = parseFloat(document.getElementById('repop-Tp').value) || 1;
+            const alpha = parseFloat(document.getElementById('repop-alpha').value) || 0.1;
+
+            const rawBED = n * d * (1 + d / ab);
+            const K = Math.LN2 / (alpha * Tp);
+            const repopDays = Math.max(0, T - Tk);
+            const lossBED = K * repopDays;
+            const netBED = Math.max(0, rawBED - lossBED);
+            const netEQD2 = netBED / (1 + 2 / ab);
+
+            document.getElementById('res-repop-raw').textContent = rawBED.toFixed(2);
+            document.getElementById('res-repop-loss').textContent = lossBED.toFixed(2);
+            document.getElementById('res-repop-net').textContent = netBED.toFixed(2);
+            document.getElementById('res-repop-eqd2').textContent = netEQD2.toFixed(2);
+            document.getElementById('res-repop-k').textContent = `${K.toFixed(2)} Gy/ngày`;
+            document.getElementById('res-repop-days').textContent = `${repopDays} ngày`;
+        }
+
+        // ---------------- MÔ-ĐUN 3: CHUYỂN ĐỔI PHÁC ĐỒ ----------------
+        function toggleRegimenMode() {
+            const mode = document.querySelector('input[name="reg-mode"]:checked').value;
+            if (mode === 'given-n2') {
+                document.getElementById('reg-input-n2-wrap').classList.remove('hidden');
+                document.getElementById('reg-input-d2-wrap').classList.add('hidden');
+            } else {
+                document.getElementById('reg-input-n2-wrap').classList.add('hidden');
+                document.getElementById('reg-input-d2-wrap').classList.remove('hidden');
+            }
+            calcRegimen();
+        }
+
+        function calcRegimen() {
+            const n1 = parseFloat(document.getElementById('reg-n1').value) || 1;
+            const d1 = parseFloat(document.getElementById('reg-d1').value) || 0.1;
+            const abTumor = parseFloat(document.getElementById('reg-ab-tumor').value) || 1;
+            const abOar = parseFloat(document.getElementById('reg-ab-oar').value) || 1;
+            const mode = document.querySelector('input[name="reg-mode"]:checked').value;
+
+            const targetBED = n1 * d1 * (1 + d1 / abTumor);
+            const targetEQD2 = targetBED / (1 + 2 / abTumor);
+
+            let n2, d2;
+            if (mode === 'given-n2') {
+                n2 = parseFloat(document.getElementById('reg-n2').value) || 1;
+                // Giải phương trình bậc 2: (n2 / abTumor) * d2^2 + n2 * d2 - targetBED = 0
+                const a = n2 / abTumor;
+                const b = n2;
+                const c = -targetBED;
+                d2 = (-b + Math.sqrt(b * b - 4 * a * c)) / (2 * a);
+            } else {
+                d2 = parseFloat(document.getElementById('reg-d2').value) || 0.1;
+                n2 = targetBED / (d2 * (1 + d2 / abTumor));
+            }
+
+            const oldTotalD = n1 * d1;
+            const newTotalD = n2 * d2;
+
+            document.getElementById('res-reg-summary').textContent = `${Number.isInteger(n2) ? n2 : n2.toFixed(1)} buổi × ${d2.toFixed(2)} Gy`;
+            document.getElementById('res-reg-total-d').textContent = `${newTotalD.toFixed(2)} Gy`;
+            document.getElementById('res-reg-old-d').textContent = `${oldTotalD.toFixed(2)} Gy`;
+            document.getElementById('res-reg-bed-tumor').textContent = targetBED.toFixed(2);
+            document.getElementById('res-reg-eqd2-tumor').textContent = targetEQD2.toFixed(2);
+
+            // Đánh giá tác động lên mô lành (OAR)
+            const oarOldBED = n1 * d1 * (1 + d1 / abOar);
+            const oarNewBED = n2 * d2 * (1 + d2 / abOar);
+            const diffPercent = ((oarNewBED - oarOldBED) / oarOldBED) * 100;
+
+            document.getElementById('res-reg-oar-old').textContent = `${oarOldBED.toFixed(2)} Gy`;
+            document.getElementById('res-reg-oar-new').textContent = `${oarNewBED.toFixed(2)} Gy`;
+
+            const oarCard = document.getElementById('res-reg-oar-card');
+            const oarBadge = document.getElementById('res-reg-oar-badge');
+            const oarAdvice = document.getElementById('res-reg-oar-advice');
+
+            if (diffPercent > 2) {
+                oarCard.className = 'rounded-2xl p-5 border bg-amber-50 border-amber-200 text-slate-800 space-y-2';
+                oarBadge.className = 'px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-200 text-amber-900';
+                oarBadge.textContent = `+${diffPercent.toFixed(1)}% BED`;
+                oarAdvice.textContent = 'Cảnh báo: Phác đồ mới làm tăng gánh nặng sinh học lên mô lành đáp ứng muộn. Cần rà soát lại biểu đồ liều - thể tích (DVH).';
+            } else if (diffPercent < -2) {
+                oarCard.className = 'rounded-2xl p-5 border bg-emerald-50 border-emerald-200 text-slate-800 space-y-2';
+                oarBadge.className = 'px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-200 text-emerald-900';
+                oarBadge.textContent = `${diffPercent.toFixed(1)}% BED`;
+                oarAdvice.textContent = 'Có lợi cho mô lành: Phác đồ mới làm giảm BED trên mô lành đáp ứng muộn trong khi vẫn giữ nguyên hiệu quả kiểm soát bướu.';
+            } else {
+                oarCard.className = 'rounded-2xl p-5 border bg-blue-50 border-blue-200 text-slate-800 space-y-2';
+                oarBadge.className = 'px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-200 text-blue-900';
+                oarBadge.textContent = 'Tương đương';
+                oarAdvice.textContent = 'Tác động lên mô lành gần như không đổi so với phác đồ chuẩn ban đầu.';
+            }
+        }
+
+        // ---------------- MÔ-ĐUN 4: SỬA SAI PHÂN LIỀU ----------------
+        function calcGapCompensation() {
+            const nPlan = parseFloat(document.getElementById('gap-n-plan').value) || 1;
+            const dPlan = parseFloat(document.getElementById('gap-d-plan').value) || 0.1;
+            const ab = parseFloat(document.getElementById('gap-ab').value) || 1;
+            const nDone = parseFloat(document.getElementById('gap-n-done').value) || 0;
+            const gapDays = parseFloat(document.getElementById('gap-days').value) || 0;
+            const K = parseFloat(document.getElementById('gap-k').value) || 0;
+            const nRem = parseFloat(document.getElementById('gap-n-rem').value) || 1;
+
+            const targetBED = nPlan * dPlan * (1 + dPlan / ab);
+            const doneBED = nDone * dPlan * (1 + dPlan / ab);
+            const gapPenalty = K * gapDays;
+
+            // Tổng BED cần bù đắp trong phần còn lại
+            const neededRemBED = Math.max(0.1, targetBED - doneBED + gapPenalty);
+
+            // Giải phương trình bậc 2 cho liều mỗi buổi còn lại d_new:
+            // (nRem / ab) * d_new^2 + nRem * d_new - neededRemBED = 0
+            const a = nRem / ab;
+            const b = nRem;
+            const c = -neededRemBED;
+            const dNew = (-b + Math.sqrt(b * b - 4 * a * c)) / (2 * a);
+            const deltaD = dNew - dPlan;
+
+            document.getElementById('res-gap-target').textContent = targetBED.toFixed(2);
+            document.getElementById('res-gap-penalty').textContent = gapPenalty.toFixed(2);
+            document.getElementById('res-gap-rem-bed').textContent = neededRemBED.toFixed(2);
+            document.getElementById('res-gap-new-d').textContent = dNew.toFixed(2);
+            document.getElementById('res-gap-rem-n').textContent = nRem;
+            document.getElementById('res-gap-delta-d').textContent = (deltaD >= 0 ? '+' : '') + deltaD.toFixed(2) + ' Gy';
+        }
+
+        // Khởi chạy tính toán mặc định khi tải trang
+        window.addEventListener('DOMContentLoaded', () => {
+            calcBasicBED();
+            calcRepopBED();
+            calcRegimen();
+            calcGapCompensation();
+        });
+    </script>
+</body>
+</html>
